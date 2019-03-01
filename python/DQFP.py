@@ -6,6 +6,7 @@ import particle as prt
 import material as mat
 import grid as gd
 import weights as wt
+import weights2 as wt2
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import linalg
@@ -16,39 +17,48 @@ def main():
     particle = prt.Particle()
     material = mat.Material()
 
-    Emin =     100
-    Emax =     120
-    Ne   =       9
+    Emin =   1550
+    Emax =   1800
+    Ne   =   62
 
     Zmin =      0
-    Zmax =   1000
-    Nz   =     25
-    
+    Zmax =     25
+    Nz   =    100
+
     # ----- Calculate matrix A ------------------------------------
     grid = gd.Grid( Ne, Emin, Emax, Nz, Zmin, Zmax )
+    Enodes = grid.get_Enodes()
+    Ewts2 = wt2.Weights2( Enodes )
+    A1 = Ewts2.get_A1()
+    A2 = Ewts2.get_A2()
 
-    Ewts = wt.Weights( grid.Enodes )
-    B1 = Ewts.get_A1()
-    B2 = Ewts.get_Higher( 2, B1 )
-    grid.get_Agrid( B1, B2, particle, material, 0 )
+    grid.get_Agrid( A1, A2, particle, material, 0 )
     
     # ----- Initial Spectrum -------------------------------
-    Yi    = np.zeros( Ne ) - 10
-    # print( grid.Agrid )
+    Start = 1705
+    idx = grid.find_Enode( Start )
+    Yi = np.zeros( Ne )
+    Yi[idx] = -1
+    B = np.array( Yi )
+    # print( grid.Enodes[idx] )
     
     # ----- Solver ---------------------------------------------
-    B = np.array( Yi )
-
-    for i in range( 0, 10 ):
+    for i in range( 0, Nz ):
         x = linalg.solve( grid.Agrid, B )
         grid.phi[:,i] = x
         B = (-1)*x
-        # if z % 100 == 0:
-        #     print( 'z iteration: ', z )
+        if i % 100 == 0:
+            print( 'step: ', i )
 
-    plt.plot( grid.Enodes, grid.phi[:,1] )
-    plt.plot( grid.Enodes, grid.phi[:,2] )
-    plt.plot( grid.Enodes, grid.phi[:,3] )
+    idx4 = grid.find_Znode( 5.0 )
+    # print( grid.Znodes[idx4] )
+    # np.savetxt('output.txt', np.column_stack((grid.Enodes, grid.phi[:,idx4]) ), fmt="%1.4e", delimiter=' ')
+
+    plt.figure( 1 )
+    plt.plot( grid.Enodes, grid.phi[:,idx4], 'g' )
+    plt.plot( grid.Enodes, grid.phi[:,idx4], 'o' )
+
     plt.show()
+
         
 if __name__ == "__main__": main()

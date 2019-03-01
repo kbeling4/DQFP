@@ -8,13 +8,26 @@ class Grid:
         self.Emax   = Emax
         self.Zmin   = Zmin
         self.Zmax   = Zmax
-        self.Enodes = np.flip( np.linspace( self.Emin, self.Emax, self.Ne, endpoint=True) )
+        self.Enodes = np.zeros( Ne )
         self.Znodes = np.linspace( Zmin, Zmax, self.Nz, endpoint=True)
         self.Sgrid  = np.array( np.zeros( ( self.Ne, self.Ne ) ) )
         self.Tgrid  = np.array( np.zeros( ( self.Ne, self.Ne ) ) )
         self.Agrid  = np.array( np.zeros( ( self.Ne, self.Ne ) ) )
         self.phi    = np.array( np.zeros( ( self.Ne, self.Nz ) ) )
-        
+
+    def get_Enodes( self ):
+        self.Enodes[0]         = self.Emin
+        self.Enodes[self.Ne-1] = self.Emax
+        for i in range( 2, self.Ne ):
+            self.Enodes[i-1] = self.Emin + 0.5*( 1 - np.cos( (i - 1)/(self.Ne - 1)*np.pi ) )*(self.Emax - self.Emin)
+        return self.Enodes
+
+    def find_Enode( self, value):
+        return (np.abs(self.Enodes - value)).argmin()
+
+    def find_Znode( self, value):
+        return (np.abs(self.Znodes - value)).argmin()
+    
     def S( self, E, particle, material ):
         particle.get_qmax( E )
         amp = 0.1536*(particle.Z)**2*material.Z*material.rho/(material.M*particle.beta2)
