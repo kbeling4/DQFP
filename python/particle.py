@@ -2,8 +2,8 @@ import numpy as np
 
 class Particle:
     def __init__(self):
-        self.name   = "Li-6"
-        self.mass   = 998
+        self.name   = "Proton"
+        self.mass   = 938.27231
         self.Z      = 1
         self.qmax   = 0
         self.beta2  = 0
